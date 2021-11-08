@@ -64,7 +64,7 @@ master:
       - R-羊灵生息
 ```
 
-- 获取配置文件中的参数
+# 获取配置文件中的参数
   - 方式一：使用@ConfigurationProperties(prefix = "xxxxx")直接绑定yml文件中对应名称的属性  
   要求：对象的属性要与yml中的属性名相同
   
