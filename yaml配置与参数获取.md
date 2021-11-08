@@ -39,23 +39,24 @@
 
 ########################################
 
-#champion:
-#  name: kindred
-#  age: 1500
-#  skills:
-#    - Q
-#    - W
-#    - E
-#    - R
+champion:
+  name: GNar
+  age: 1500
+  skills:
+    - Q
+    - W
+    - E
+    - R
 
 master:
-  name: QSJ
+  name: QSJ${random.uuid}
   age: 24
   sex: true
   birth: 2021/11/08
   maps: {k1: v1,k2: v2}
   champion:
-    name: kindred
+    # 如果有champion.name则使用champion.name的值 没有则使用默认值kindred
+    name: ${champion.name:kindred}
     age: 1500
     skills:
       - Q-乱箭之舞
