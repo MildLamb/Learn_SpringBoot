@@ -34,6 +34,9 @@ private String staticPathPattern = "/**";
 ```
 
 ## thymeleaf
+
+thymeleaf使用:https://www.thymeleaf.org/doc/tutorials/2.1/usingthymeleaf.html#attribute-precedence
+
 - 导入依赖
 ```xml
 <!-- 导入thymeleaf -->
