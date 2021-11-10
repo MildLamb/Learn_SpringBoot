@@ -32,3 +32,30 @@ private String staticPathPattern = "/**";
 # 自定义静态资源地址
 #spring.mvc.static-path-pattern=/hello/**
 ```
+
+## thymeleaf
+- 导入依赖
+```xml
+<!-- 导入thymeleaf -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-thymeleaf</artifactId>
+</dependency>
+```
+- thymeleaf使用
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+</head>
+<body>
+    <!-- 所有的html元素都可以被 thymeleaf 替换接管 th:元素名 -->
+    <h1 th:text="${msg}">首页</h1>
+    <h1 th:utext="${msg}">首页</h1>
+
+    <h3 th:each="champion:${champions}" th:text="${champion}">[[${champion}]]</h3>
+</body>
+</html>
+```
