@@ -95,3 +95,52 @@ public class MvcConfig implements WebMvcConfigurer {
 //    }
 }
 ```
+
+## 拦截器 
+- 自定义拦截器实现handlerInterceptor接口 重写preHandle方法
+```java
+public class LoginHandlerInterceptor implements HandlerInterceptor {
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+
+        //登录成功后应该有用户的session
+        Object loginUser = request.getSession().getAttribute("loginUser");
+        if (loginUser != null){
+            return true;
+        }else {
+            request.setAttribute("msg","没有权限，请先登录");
+            request.getRequestDispatcher("/index.html").forward(request,response);
+            return false;
+        }
+    }
+
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+
+    }
+}
+```
+- 配置自定义拦截器
+```java
+@Configuration
+public class MyMvcConfig implements WebMvcConfigurer {
+    //自定义国际化组件
+    @Bean
+    public LocaleResolver localeResolver(){
+        return new MyLocaleResolver();
+    }
+
+		//配置拦截规则
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LoginHandlerInterceptor())
+                .addPathPatterns("/**")
+                .excludePathPatterns("/index","/","/index.html","/user/login","/css/*","/js/*","/img/*");
+    }
+}
+```
