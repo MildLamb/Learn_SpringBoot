@@ -1,0 +1,62 @@
+{
+  "groups": [
+    {
+      "name": "champion",
+      "type": "com.mildlamb.pojo.Champion",
+      "sourceType": "com.mildlamb.pojo.Champion"
+    },
+    {
+      "name": "master",
+      "type": "com.mildlamb.pojo.Master",
+      "sourceType": "com.mildlamb.pojo.Master"
+    }
+  ],
+  "properties": [
+    {
+      "name": "champion.age",
+      "type": "java.lang.Integer",
+      "sourceType": "com.mildlamb.pojo.Champion"
+    },
+    {
+      "name": "champion.last-name",
+      "type": "java.lang.String",
+      "sourceType": "com.mildlamb.pojo.Champion"
+    },
+    {
+      "name": "champion.skills",
+      "type": "java.util.List<java.lang.String>",
+      "sourceType": "com.mildlamb.pojo.Champion"
+    },
+    {
+      "name": "master.age",
+      "type": "java.lang.Integer",
+      "sourceType": "com.mildlamb.pojo.Master"
+    },
+    {
+      "name": "master.birth",
+      "type": "java.util.Date",
+      "sourceType": "com.mildlamb.pojo.Master"
+    },
+    {
+      "name": "master.champion",
+      "type": "com.mildlamb.pojo.Champion",
+      "sourceType": "com.mildlamb.pojo.Master"
+    },
+    {
+      "name": "master.maps",
+      "type": "java.util.Map<java.lang.String,java.lang.Object>",
+      "sourceType": "com.mildlamb.pojo.Master"
+    },
+    {
+      "name": "master.name",
+      "type": "java.lang.String",
+      "sourceType": "com.mildlamb.pojo.Master"
+    },
+    {
+      "name": "master.sex",
+      "type": "java.lang.Boolean",
+      "sourceType": "com.mildlamb.pojo.Master"
+    }
+  ],
+  "hints": []
+}

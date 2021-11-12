@@ -1,0 +1,70 @@
+# springboot配置文件到底能配置哪些属性呢?
+
+# 可以注入到我们的配置类中
+
+### 普通键值对
+# properties:  key=value
+# yml/yaml: key: value
+
+### 存对象
+#student:
+#  name: kindred
+#  age: 1500
+
+# 行内写法
+#student: {name: kindred,age: 1500}
+
+### 数组(List,Set)
+#names:
+#  - kindred
+#  - gnar
+#  - neeko
+
+# 行内写法
+#names: [kindred,gnar,neeko]
+
+### map
+#tes:
+#  maps: {key1: 12,key2: 34}
+
+# 行内写法
+#tes:
+#  maps:
+#    key1: 15
+#    key2: 2
+
+
+
+########################################
+
+champion:
+  last-name: GNar
+  age: 1500
+  skills:
+    - Q
+    - W
+    - E
+    - R
+
+master:
+  name: QSJ${random.uuid}
+  age: 24
+  sex: true
+  birth: 2021/11/08
+  maps: {k1: v1,k2: v2}
+  champion:
+    # 如果有champion.name则使用champion.name的值 没有则使用默认值kindred
+    name: ${champion.name:kindred}
+    age: 1500
+    skills:
+      - Q-乱箭之舞
+      - W-狼灵狂热
+      - E-俱意横生
+      - R-羊灵生息
+
+# springboot的多环境配置
+spring:
+  profiles:
+    active: test
+
+debug: true
