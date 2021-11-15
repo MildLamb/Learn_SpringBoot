@@ -90,6 +90,7 @@ create unique index ix_auth_username on authorities (username,authority);
   - authority：角色 注意：一定要ROLE_  开头 否则是不会识别的
 
 - 表中的数据可以手动添加也可以使用UserDetailsManager来管理,只需要在spring中配置bean,会自动向刚刚的表中插入对应的数据
+- 注意这里的User类是，import org.springframework.security.core.userdetails.User; 中的
 ```java
 @Configuration
 public class UserSetConfig {
