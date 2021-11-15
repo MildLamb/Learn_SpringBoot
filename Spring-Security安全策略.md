@@ -74,3 +74,41 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     }
 }
 ```
+## 主要说明一下如何使用数据库进行用户验证
+- 创建一个默认的schema 可以在 (org/springframework/security/core/userdetails/jdbc/users.ddl)找到
+```sql
+create table `users`(`username` varchar(50) not null primary key,`password` varchar(500) not null,enabled boolean not null);
+create table `authorities` (`username` varchar(50) not null,`authority` varchar(50) not null,constraint fk_authorities_users foreign key(username) references users(username));
+create unique index ix_auth_username on authorities (username,authority);
+```
+- users表 username password enabled 属性说明
+  - username：用户名
+  - password：密码(新版现在要求要使用一种加密才能使用，不能是明文的密码，否则会报500错误  There is no PasswordEncoder mapped for the id "null")
+  - enabled：0，1 表示这个用户是否被启用
+- authorities表 username authority 属性说明
+  - username：关联users表的外键key
+  - authority：角色 注意：一定要ROLE_  开头 否则是不会识别的
+
+- 表中的数据可以手动添加也可以使用UserDetailsManager来管理,只需要在spring中配置bean,会自动向刚刚的表中插入对应的数据
+```java
+@Configuration
+public class UserSetConfig {
+    @Bean
+    UserDetailsManager users(DataSource dataSource) {
+        UserDetails user = User.builder()
+                .username("QSJ")
+                .password("$2a$10$3GIxvmbs4cITKMbty8cUs.NXQiJitm8iQnjRfjmHI0lmCMpqf3kzq")
+                .roles("vip1","vip3")
+                .build();
+//        UserDetails admin = User.builder()
+//                .username("admin")
+//                .password("{bcrypt}$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW")
+//                .roles("USER", "ADMIN")
+//                .build();
+        JdbcUserDetailsManager users = new JdbcUserDetailsManager(dataSource);
+        users.createUser(user);
+//        users.createUser(admin);
+        return users;
+    }
+}
+```
