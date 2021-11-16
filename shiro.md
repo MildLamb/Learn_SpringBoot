@@ -206,3 +206,63 @@ public class Quickstart {
   - 获取当前用户的认证：currentUser.getPrincipal()
   - 判断用户是否拥有角色：currentUser.hasRole("schwartz")
   - 判断用户是否有权限：currentUser.isPermitted("lightsaber:wield")
+
+# springboot 整合 shiro
+- 导入依赖
+```xml
+<!-- shiro整合springboot的依赖 -->
+<dependency>
+    <groupId>org.apache.shiro</groupId>
+    <artifactId>shiro-spring-boot-web-starter</artifactId>
+    <version>1.7.1</version>
+</dependency>
+```
+- 自定义Realm类 继承 AuthorizingRealm类
+```java
+//自定义Realm 继承 AuthorizingRealm类
+public class UserRealm extends AuthorizingRealm {
+    //授权
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
+        System.out.println("执行了 ==> 授权方法");
+        return null;
+    }
+
+    //认证
+    @Override
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
+        System.out.println("执行了 ==> 认证方法");
+        return null;
+    }
+}
+```
+- 自定义Shiro配置
+```java
+@Configuration
+public class ShiroConfig {
+
+    //3.ShiroFilterFactoryBean
+    @Bean("shiroFilterFactoryBean")
+    public ShiroFilterFactoryBean getShiroBean(@Qualifier("shiroManager") DefaultWebSecurityManager defaultWebSecurityManager){
+        ShiroFilterFactoryBean shiroBean = new ShiroFilterFactoryBean();
+        shiroBean.setSecurityManager(defaultWebSecurityManager);
+        return shiroBean;
+    }
+
+
+    //2.DefaultWebSecurityManager
+    @Bean("shiroManager")
+    public DefaultWebSecurityManager getManager(@Qualifier("userRealm") UserRealm userRealm){
+        DefaultWebSecurityManager Manager = new DefaultWebSecurityManager();
+        //关联UserRealm
+        Manager.setRealm(userRealm);
+        return Manager;
+    }
+
+    //1.创建 realm 对象，需要自定义
+    @Bean("userRealm")
+    public UserRealm getUserRealm(){
+        return new UserRealm();
+    }
+}
+```
