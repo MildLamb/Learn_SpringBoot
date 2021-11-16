@@ -60,8 +60,8 @@ guest = guest, guest
 presidentskroob = 12345, president
 # user 'darkhelmet' with password 'ludicrousspeed' and roles 'darklord' and 'schwartz'
 darkhelmet = ludicrousspeed, darklord, schwartz
-# user 'lonestarr' with password 'vespa' and roles 'goodguy' and 'schwartz'
-lonestarr = vespa, goodguy, schwartz
+# user 'kindred' with password 'W2kindred' and roles 'goodguy' and 'schwartz'
+kindred = W2kindred, goodguy, schwartz
 
 # -----------------------------------------------------------------------------
 # Roles with assigned permissions
@@ -143,7 +143,7 @@ public class Quickstart {
         // 判断当前用户是否被认证
         if (!currentUser.isAuthenticated()) {
             // token：令牌
-            UsernamePasswordToken token = new UsernamePasswordToken("lonestarr", "vespa");
+            UsernamePasswordToken token = new UsernamePasswordToken("lonestarr", "vespa");  //ini中配置
             token.setRememberMe(true);  //设置记住我
             try {
                 currentUser.login(token);  //执行登录操作
@@ -199,3 +199,10 @@ public class Quickstart {
 }
 
 ```
+- 当前用户对象subject的主要方法
+  - 获取当前对象：SecurityUtils.getSubject();
+  - 获取当前用户Session，不是httpsession：currentUser.getSession();
+  - 判断当前用户是否被认证：currentUser.isAuthenticated()
+  - 获取当前用户的认证：currentUser.getPrincipal()
+  - 判断用户是否拥有角色：currentUser.hasRole("schwartz")
+  - 判断用户是否有权限：currentUser.isPermitted("lightsaber:wield")
