@@ -221,30 +221,56 @@ public class Quickstart {
 ```java
 //自定义Realm 继承 AuthorizingRealm类
 public class UserRealm extends AuthorizingRealm {
-    //授权
-    @Override
-    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
-        System.out.println("执行了 ==> 授权方法");
-        return null;
-    }
+
+    @Autowired
+    private UserService userService;
 
     //认证
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
         System.out.println("执行了 ==> 认证方法");
-        //伪造一个用户数据
-        String name = "kindred";
-        String pwd = "W2kindred";
 
         //subject.login(token);被调用  这里的参数token就可以获取到用户的token
+        //userToken 是前端传递的 用户名密码 也就是我们需要验证的用户名和密码
         UsernamePasswordToken userToken = (UsernamePasswordToken) token;
-        if (!userToken.getUsername().equals(name)){
-            return null;  //抛出异常 UnknownAccountException
-        }
 
-        //密码认证 shiro去完成
-        return new SimpleAuthenticationInfo("",pwd,"");
+        userToken.setRememberMe(true);
+
+        //根据前端传递的用户名 查询数据库是否存在用户 是-返回用户对象
+        User user = userService.selectUserByName(userToken.getUsername());
+        if (user != null){
+            //密码认证 shiro去完成  将用户数据库中的密码当作参数传递给shiro去进行验证
+            // 密码可以加密
+            // 这里的第一个参数传递user后，可以在授权中获取到user对象
+            System.out.println("认证: ==> " + user);
+            return new SimpleAuthenticationInfo(user,user.getPwd(),"");
+        }else{
+            return null;   //return null 会报出 UnknownAccountException 异常
+        }
     }
+
+    //授权
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection) {
+        System.out.println("执行了 ==> 授权方法");
+
+        //给用户授予权限
+        SimpleAuthorizationInfo info = new SimpleAuthorizationInfo();
+//        info.addStringPermission("user:add");
+
+        //获取当前登录的对象
+        Subject subject = SecurityUtils.getSubject();
+        //拿到User对象，从认证方法return new SimpleAuthenticationInfo(user,user.getPwd(),""); 第一个参数中获取到
+        User currentUser = (User) subject.getPrincipal();
+        //设置当前用户的权限
+        info.addStringPermission(currentUser.getPerms());
+        System.out.println("授权 ==> " + currentUser);
+        System.out.println(currentUser.getPerms());
+
+
+        return info;
+    }
+
 }
 ```
 - 自定义Shiro配置
@@ -275,6 +301,7 @@ public class ShiroConfig {
         //授权
         //表示 必须是user用户 并且有add权限
         filterMap.put("/user/add","perms[user:add]");
+        filterMap.put("/user/update","perms[user:update]");
         // 正常情况 如果没授权 需要跳转到一个没授权的页面 否则就是返回401状态码
         shiroBean.setUnauthorizedUrl("/to401");
 
@@ -291,10 +318,11 @@ public class ShiroConfig {
 
     //2.DefaultWebSecurityManager
     @Bean("shiroManager")
-    public DefaultWebSecurityManager getManager(@Autowired UserRealm userRealm){
+    public DefaultWebSecurityManager getManager(@Autowired UserRealm userRealm,@Autowired CookieRememberMeManager rememberMeManager){
         DefaultWebSecurityManager Manager = new DefaultWebSecurityManager();
         //关联UserRealm
         Manager.setRealm(userRealm);
+        Manager.setRememberMeManager(rememberMeManager);
         return Manager;
     }
 
@@ -303,6 +331,42 @@ public class ShiroConfig {
     public UserRealm getUserRealm(){
         return new UserRealm();
     }
+
+    //整合ShiroDialect：用来整合 shiro thymeleaf
+    @Bean
+    public ShiroDialect getShiroDialect(){
+        return new ShiroDialect();
+    }
+
+
+    /**
+     * cookie对象;
+     * rememberMeCookie()方法是设置Cookie的生成模版，比如cookie的name，cookie的有效时间等等。
+     * @return
+     */
+    @Bean
+    public SimpleCookie rememberMeCookie(){
+        //这个参数是cookie的名称，对应前端的checkbox的name = rememberMe
+        SimpleCookie simpleCookie = new SimpleCookie("rememberMe");
+        //<!-- 记住我cookie生效时间30天 ,单位秒;-->
+        simpleCookie.setMaxAge(259200);
+        return simpleCookie;
+    }
+
+    /**
+     * cookie管理对象;
+     * rememberMeManager()方法是生成rememberMe管理器，而且要将这个rememberMe管理器设置到securityManager中
+     * @return
+     */
+    @Bean
+    public CookieRememberMeManager rememberMeManager(){
+        CookieRememberMeManager cookieRememberMeManager = new CookieRememberMeManager();
+        cookieRememberMeManager.setCookie(rememberMeCookie());
+        //rememberMe cookie加密的密钥 建议每个项目都不一样 默认AES算法 密钥长度(128 256 512 位)
+        cookieRememberMeManager.setCipherKey(Base64.decode("2AvVhdsgUs0FSA3SDFAdag=="));
+        return cookieRememberMeManager;
+    }
+
 }
 ```
 - Controller接收用户登录信息，调用登录方法
@@ -367,5 +431,70 @@ public class MyController {
         return "未授权访问该页面";
     }
 
+    @RequestMapping("/logout")
+    public String logout(){
+        Subject subject = SecurityUtils.getSubject();
+        subject.logout();
+        return "redirect:/";
+    }
+
 }
+```
+- thymeleaf-shiro整合依赖
+```html
+<!-- shiro整合thymeleaf的依赖 -->
+<dependency>
+    <groupId>com.github.theborakompanioni</groupId>
+    <artifactId>thymeleaf-extras-shiro</artifactId>
+    <version>2.1.0</version>
+</dependency>
+```
+
+- index.html
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+    <meta charset="UTF-8">
+    <title>首页</title>
+</head>
+<body>
+    <h1>首页</h1>
+    <p th:text="${msg}"></p>
+    <div shiro:hasPermission="'user:add'">
+        <a th:href="@{/user/add}">添加</a>
+    </div>
+    <div shiro:hasPermission="'user:update'">
+        <a th:href="@{/user/update}">修改</a>
+    </div>
+    <!-- 两种方法实现 登录后 登录按钮消失 -->
+    <div shiro:notAuthenticated="">
+<!--    <div shiro:guest="true">-->
+        <a href="/toLogin">去登录</a>
+    </div>
+
+    <div shiro:Authenticated="">
+        <a href="/logout">注销</a>
+    </div>
+</body>
+</html>
+```
+- login.html
+```html
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+</head>
+<body>
+    <p th:text="${msg}" style="color: red"></p>
+    <form th:action="@{/login}">
+        <p>用户名：<input type="text" name="username"></p>
+        <p>密&nbsp;码：<input type="password" name="password"></p>
+        <p><input type="submit" value="登录"></p>
+        <P><input type="checkbox" name="rememberMe" />记住我</P>
+    </form>
+</body>
+</html>
 ```
