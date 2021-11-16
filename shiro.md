@@ -243,16 +243,36 @@ public class ShiroConfig {
 
     //3.ShiroFilterFactoryBean
     @Bean("shiroFilterFactoryBean")
-    public ShiroFilterFactoryBean getShiroBean(@Qualifier("shiroManager") DefaultWebSecurityManager defaultWebSecurityManager){
+    public ShiroFilterFactoryBean getShiroBean(@Autowired DefaultWebSecurityManager defaultWebSecurityManager){
         ShiroFilterFactoryBean shiroBean = new ShiroFilterFactoryBean();
+
+        //设置安全管理器
         shiroBean.setSecurityManager(defaultWebSecurityManager);
+
+        //添加shiro的内置过滤器
+        /*
+            anon：无需认证就能访问
+            authc：必须认证了才能访问
+            user：必须拥有记住我功能才能访问
+            perms：拥有对某个资源的权限才能访问
+            role：拥有某个角色才能访问
+         */
+        Map<String,String> filterMap = new LinkedHashMap<String, String>();
+        filterMap.put("/user/add","anon");
+        filterMap.put("/user/update","authc");
+
+        shiroBean.setFilterChainDefinitionMap(filterMap);
+
+        //设置登录页面,也就是没有认证后跳转的页面
+        shiroBean.setLoginUrl("/toLogin");
+
         return shiroBean;
     }
 
 
     //2.DefaultWebSecurityManager
     @Bean("shiroManager")
-    public DefaultWebSecurityManager getManager(@Qualifier("userRealm") UserRealm userRealm){
+    public DefaultWebSecurityManager getManager(@Autowired UserRealm userRealm){
         DefaultWebSecurityManager Manager = new DefaultWebSecurityManager();
         //关联UserRealm
         Manager.setRealm(userRealm);
