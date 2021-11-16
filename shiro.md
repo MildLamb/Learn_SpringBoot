@@ -269,8 +269,16 @@ public class ShiroConfig {
             role：拥有某个角色才能访问
          */
         Map<String,String> filterMap = new LinkedHashMap<String, String>();
+        //拦截规则
         filterMap.put("/user/add","anon");
         filterMap.put("/user/update","authc");
+        //授权
+        //表示 必须是user用户 并且有add权限
+        filterMap.put("/user/add","perms[user:add]");
+        // 正常情况 如果没授权 需要跳转到一个没授权的页面 否则就是返回401状态码
+        shiroBean.setUnauthorizedUrl("/to401");
+
+
 
         shiroBean.setFilterChainDefinitionMap(filterMap);
 
@@ -352,5 +360,12 @@ public class MyController {
             return "login";
         }
     }
+
+    @RequestMapping("/to401")
+    @ResponseBody
+    public String Unauthorized(){
+        return "未授权访问该页面";
+    }
+
 }
 ```
