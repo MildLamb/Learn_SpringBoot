@@ -230,9 +230,20 @@ public class UserRealm extends AuthorizingRealm {
 
     //认证
     @Override
-    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken authenticationToken) throws AuthenticationException {
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
         System.out.println("执行了 ==> 认证方法");
-        return null;
+        //伪造一个用户数据
+        String name = "kindred";
+        String pwd = "W2kindred";
+
+        //subject.login(token);被调用  这里的参数token就可以获取到用户的token
+        UsernamePasswordToken userToken = (UsernamePasswordToken) token;
+        if (!userToken.getUsername().equals(name)){
+            return null;  //抛出异常 UnknownAccountException
+        }
+
+        //密码认证 shiro去完成
+        return new SimpleAuthenticationInfo("",pwd,"");
     }
 }
 ```
@@ -283,6 +294,63 @@ public class ShiroConfig {
     @Bean("userRealm")
     public UserRealm getUserRealm(){
         return new UserRealm();
+    }
+}
+```
+- Controller接收用户登录信息，调用登录方法
+```java
+@Controller
+public class MyController {
+
+    /*
+        shiro三大对象:
+            1. Subject 用户对象
+            2. SecurityManager  管理用户对象
+            3. Realm  数据连接
+     */
+
+    @RequestMapping({"/index","/","/index.html"})
+    public String toIndex(Model model){
+        model.addAttribute("msg","Hello Shiro");
+        return "index";
+    }
+
+    @RequestMapping("/user/add")
+    public String add(){
+        return "user/add";
+    }
+
+    @RequestMapping("/user/update")
+    public String update(){
+        return "user/update";
+    }
+
+    @RequestMapping("/toLogin")
+    public String toLogin(){
+        return "login";
+    }
+
+    @RequestMapping("/login")
+    public String login(@RequestParam("username") String username,@RequestParam("password") String password,Model model){
+        //获取当前的用户
+        Subject subject = SecurityUtils.getSubject();
+
+        //封装用户的登录数据
+        UsernamePasswordToken token = new UsernamePasswordToken(username, password);
+
+        //执行登录方法，如果没有异常，说明登录失败
+        try {
+            subject.login(token);
+            return "index";
+        } catch(UnknownAccountException e){  //如果用户名不存在
+            model.addAttribute("msg","用户名不存在");
+            return "login";
+        } catch(IncorrectCredentialsException e){  //密码不正确
+            model.addAttribute("msg","密码不正确");
+            return "login";
+        } catch (AuthenticationException e) {
+            return "login";
+        }
     }
 }
 ```
