@@ -31,6 +31,16 @@
 public class SwaggerConfig {
     private static final Contact DEFAULT_CONTACT = new Contact("Engulf迷失", "http://gnardada.com", "1216982545@qq.com");
 
+    @Bean
+    public Docket docket1(){
+        return new Docket(DocumentationType.SWAGGER_2).groupName("WildWolf");
+    }
+
+    @Bean
+    public Docket docket2(){
+        return new Docket(DocumentationType.SWAGGER_2).groupName("EngulfMissing");
+    }
+
     //配置Swagger的bean实例
     @Bean
     public Docket docket(Environment environment){
@@ -42,6 +52,7 @@ public class SwaggerConfig {
 
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(getApiInfo())
+                .groupName("MildLamb")
                 //实现在开发环境启动swagger，其他环境关闭swagger
                 .enable(b)
                 .select()
@@ -68,3 +79,4 @@ public class SwaggerConfig {
 }
 
 ```
+- 配置多个分组，就是配置多个Docket
