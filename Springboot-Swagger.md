@@ -23,6 +23,7 @@
     <version>2.9.2</version>
 </dependency>
 ```
+## Swagger配置扫描接口
 - 配置Swagger => Config
 ```java
 @Configuration
@@ -32,9 +33,31 @@ public class SwaggerConfig {
 
     //配置Swagger的bean实例
     @Bean
-    public Docket docket(){
+    public Docket docket(Environment environment){
+
+        //如果当前环境是dev，则会返回一个Profiles对象，我们判断这个返回值是否为空，来实现判断当前环境是否为dev环境
+        Profiles profiles = Profiles.of("dev");
+        //判断当前环境是否为dev环境
+        boolean b = environment.acceptsProfiles(profiles);
+
         return new Docket(DocumentationType.SWAGGER_2)
-                .apiInfo(getApiInfo());
+                .apiInfo(getApiInfo())
+                //实现在开发环境启动swagger，其他环境关闭swagger
+                .enable(b)
+                .select()
+                //RequestHandlerSelectors  配置要扫描的接口位置
+                /*
+                    basePackage(""):指定要扫描的包
+                    any():扫描全部
+                    none():不扫描
+                    withMethodAnnotation(final Class<? extends Annotation> annotation):扫描方法上的注解，参数是一个注解的反射对象
+                    withClassAnnotation(final Class<? extends Annotation> annotation):扫描类上的注解
+                 */
+                .apis(RequestHandlerSelectors.basePackage("com.mildlamb.controller"))
+                //paths():过滤扫描路径
+                //只有是/mildlamb下的请求才能被扫描到
+//                .paths(PathSelectors.ant("/mildlamb/**"))
+                .build();
     }
 
     //配置swagger的一些信息
@@ -43,4 +66,5 @@ public class SwaggerConfig {
                 DEFAULT_CONTACT, "Apache 2.0", "http://www.apache.org/licenses/LICENSE-2.0", new ArrayList<VendorExtension>());
     }
 }
+
 ```
