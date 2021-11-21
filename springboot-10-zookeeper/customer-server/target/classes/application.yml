@@ -1,0 +1,11 @@
+server:
+  port: 8082
+
+# 消费者从哪里拿服务，需要暴露自己的名字
+dubbo:
+  application:
+  # 消费者的名字
+    name: Consumer of Provider
+  # 注册中心的地址
+  registry:
+    address: zookeeper://127.0.0.1:2181
